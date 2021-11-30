@@ -33,7 +33,7 @@ class ImageView(APIView):
 
             # Detect
             detect.run(source=MEDIA_ROOT / file.image.name, weights=BASE_DIR / 'yolov5/weights/weight.pt',
-                       project=DETECT_ROOT, imgsz=416, conf_thres=0.4)
+                       project=DETECT_ROOT, imgsz=[416, 416], conf_thres=0.4)
 
             # Load detected result
             with open(result_dir / file.image.name[7:], "rb") as image_file:
@@ -60,7 +60,7 @@ class VideoView(APIView):
 
             # Detect
             detect.run(source=MEDIA_ROOT / file.video.name, weights=BASE_DIR / 'yolov5/weights/weight.pt',
-                       project=DETECT_ROOT, imgsz=416, conf_thres=0.4)
+                       project=DETECT_ROOT, imgsz=[416, 416], conf_thres=0.4)
 
             # Return video url
             return Response({"status":"success", "url": "/media/detect/exp/"+file.video.name[7:]}
