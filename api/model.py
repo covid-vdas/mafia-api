@@ -7,3 +7,6 @@ class Image(models.Model):
 
 class Video(models.Model):
     video = models.FileField(upload_to="videos/")
+
+class Camera(models.Model):
+    url = models.TextField()

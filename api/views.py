@@ -9,7 +9,7 @@ from django.http import StreamingHttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import ImageSerializer, VideoSerializer
+from .serializers import ImageSerializer, VideoSerializer, CameraSerializer
 from PIL import Image as Img
 from .model import Image
 from yolov5 import detect
@@ -69,3 +69,22 @@ class VideoView(APIView):
             return Response({"status": "error", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class CameraView(APIView):
+
+    def post(self, request):
+        serializer = CameraSerializer(data=request.data)
+
+        if serializer.is_valid():
+            # Save Video
+            file = serializer.save()
+            result_dir = DETECT_ROOT / 'exp'
+            shutil.rmtree(result_dir)
+            # Detect
+            detect.run(source=file.url, weights=BASE_DIR / 'yolov5/weights/weight.pt',
+                       project=DETECT_ROOT, imgsz=[416, 416], conf_thres=0.4)
+
+            # Return video url
+            return Response({"status":"success", "url": "/media/detect/exp/"}
+                            , status=status.HTTP_200_OK)
+        else:
+            return Response({"status": "error", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
