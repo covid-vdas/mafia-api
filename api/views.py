@@ -79,9 +79,8 @@ class ImageURL(APIView):
             result_dir = DETECT_ROOT / 'exp'
             shutil.rmtree(result_dir)
 
-            urllib.request.urlretrieve(file.url,"temp.png")
-            img = Img.open("temp.png")
-            img.save(MEDIA_ROOT / 'images/image.png')
+            urllib.request.urlretrieve(file.url, MEDIA_ROOT/ "images/image.png")
+
             # Detect
             detect.run(source=MEDIA_ROOT/'images/image.png', weights=BASE_DIR / 'yolov5/weights/weight.pt',
                        project=DETECT_ROOT, imgsz=[416, 416], conf_thres=0.4)
