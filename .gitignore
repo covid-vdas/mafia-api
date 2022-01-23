@@ -1,5 +1,5 @@
 
 yolov5/
-!/media/detect/exp/
-!/media/images/
-!/media/videos/
+media/detect/exp/
+media/images/
+media/videos/
