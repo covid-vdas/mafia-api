@@ -24,6 +24,8 @@ SECRET_KEY = 'django-insecure-&i3z(^z&kpd^4v(w-(3u5g2y8a3qe)%jnqbga%ltdcr-9=w03u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+CORS_ORIGIN_ALLOW_ALL = True
+
 ALLOWED_HOSTS = []
 
 # Application definition
@@ -37,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'api',
     'rest_framework',
-    'yolov5'
+    'yolov5',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -48,6 +51,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'mafia_api.urls'

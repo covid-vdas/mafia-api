@@ -22,13 +22,12 @@ from mafia_api.settings import MEDIA_ROOT, BASE_DIR, DETECT_ROOT
 class ImageView(APIView):
 
     def post(self, request):
-        shutil.rmtree(MEDIA_ROOT / 'images')
+        # shutil.rmtree(MEDIA_ROOT / 'images')
         serializer = ImageSerializer(data=request.data)
-
         if serializer.is_valid():
             # Save image
             file = serializer.save()
-
+            
             # Delete previous result
             result_dir = DETECT_ROOT / 'exp'
             shutil.rmtree(result_dir)
