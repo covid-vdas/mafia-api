@@ -11,3 +11,6 @@ def connectDB():
     client = connect(
         host=url)
 
+
+def disconnect():
+    disconnect(alias=os.getenv('NAME_DB_MONGO'))

@@ -7,7 +7,7 @@ from .violation_model import *
 from .violation_type_model import *
 from .image_model import *
 from .camera_model import *
-from .object_class import *
+from .object_information import *
 
 connectDB()
 

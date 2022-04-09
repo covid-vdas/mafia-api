@@ -48,6 +48,13 @@ class UserView(APIView):
             list_user = User.objects
             serializers_users = UserSerializer(list_user, many=True)
 
+            is_staff = Role.objects(id=user.role_id).first()
+
+            if is_staff.name == 'staff':
+                return Response({'message': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
+
+            serializers_user = UserSerializer(user)
+
             # update role information to user
             for user_serializer in serializers_users.data:
                 dynamically_user(user_serializer)
@@ -69,6 +76,13 @@ class UserView(APIView):
              @param  request: received data from user's request
              @return Response: a user was created and status
         """
+        if request.headers.get('Authorization') is None:
+            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+        elif request.headers.get('Authorization').find('Bearer') == -1:
+            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+        user = splitHeader(request.headers['Authorization'].split(' ')[1])
+        if bool(user) is False:
+            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
             if request.data.get('password') is not None:
@@ -76,12 +90,15 @@ class UserView(APIView):
                 request.data['password'] = encryption(request.data['password']).decode('utf-8')
             # request.data.update({'password': encryption(request.data['password'])})
             user_serializer = UserSerializer(data=request.data)
+
             if user_serializer.is_valid():  # check if data is validation
-                user_serializer.save()  # saved to db
+                saved_user = user_serializer.save()  # saved to db
                 return Response(user_serializer.data, status=status.HTTP_200_OK)
+
             return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             print(e)
+            return Response({'message': 'Bad request.'}.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserDetailView(APIView):
@@ -142,14 +159,21 @@ class UserDetailView(APIView):
         if bool(user_login) is False:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
+        print(user_login.username)
         try:
             user = User.objects(id=id).first()
             role_name_user_login = Role.objects(id=user_login['role_id']).first()['name']
             role_name_user = Role.objects(id=user['role_id']).first()['name']
             if role_name_user_login == 'staff' and user_login.username != user.username:
                 return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-            elif (role_name_user_login == 'manager' and user_login.username != user.username and role_name_user != 'staff') or role_name_user == 'admin':
-                #print(user_login.username, '    ', user.username)
+            elif (
+                    role_name_user_login == 'manager' and user_login.username != user.username and role_name_user != 'staff'):
+                return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+            if request.data.get('password') is not None:
+                request.data['password'] = encryption(request.data['password']).decode('utf-8')
+
+            if request.data.get('managed_by') is not None and role_name_user_login == 'staff':
                 return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
             serializers_user = UserSerializer(user, data=request.data, partial=True)  # serializer data for validation
@@ -158,6 +182,7 @@ class UserDetailView(APIView):
                 user.updated_at = datetime.datetime.utcnow()  # update updated_at field
                 serializers_user.save()  # save new instance to db
                 result = dynamically_user(OrderedDict(serializers_user.data))
+
                 return Response({
                     "message": "updated successfully.",
                     "data": result
@@ -187,14 +212,31 @@ class UserDetailView(APIView):
             user_login = splitHeader(request.headers['Authorization'].split(' ')[1])
             if bool(user_login) is False:
                 return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-            user = User.objects(id=id).first()
+            user_delete = User.objects(id=id).first()
 
-            if bool(user) is False:
+            if bool(user_delete) is False:
                 return Response({'message': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
 
-            role_name = Role.objects(id=user_login.role_id).first()['name']
-            if role_name == 'admin' and user_login.username != user.username:
-                user.delete()
+            role_user_login = Role.objects(id=user_login.role_id).first()['name']
+            role_user_delete = Role.objects(id=user_delete.role_id).first()['name']
+
+            print(role_user_login, role_user_delete)
+
+            role_admin = Role.objects(name='admin').first()
+
+            if (role_user_login == 'admin' and role_user_delete != 'admin') or (
+                    role_user_login == 'manager' and role_user_delete == 'staff') and user_login.username != user_delete.username:
+                if role_user_delete == 'manager':
+                    user_admin = User.objects(role_id=str(role_admin.id)).first()
+                    staff_managed_by_user = User.objects(managed_by=str(user_delete.id))
+                    for staff_user in staff_managed_by_user:
+                        staff_user.managed_by = str(user_admin.id)
+                        print(staff_user.managed_by)
+                        staff_user.save()
+                        print('xxx')
+
+                user_delete.delete()
+                print('da xoa')
             else:
                 return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
@@ -234,3 +276,44 @@ class LoginView(APIView):
             'data': result,
             'token': token
         }, status=status.HTTP_200_OK)
+
+
+class ManageUserView(APIView):
+    renderer_classes = [renderers.JSONRenderer]  # render format "application/json"
+
+    def get(self, request: Request):
+        """
+            List all user
+            @param  self: class instance
+            @param  request: received data from user's request
+            @return Response: List of user and status
+        """
+
+        if request.headers.get('Authorization') is None:
+            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+        elif request.headers.get('Authorization').find('Bearer') == -1:
+            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+        user = splitHeader(request.headers['Authorization'].split(' ')[1])
+        if bool(user) is False:
+            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            list_user = User.objects(managed_by=str(user.id))
+            serializers_users = UserSerializer(list_user, many=True)
+            print(list_user)
+            is_staff = Role.objects(id=user.role_id).first()
+
+            if is_staff.name == 'staff':
+                return Response({'message': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
+
+            serializers_user = UserSerializer(user)
+
+            # update role information to user
+            for user_serializer in serializers_users.data:
+                dynamically_user(user_serializer)
+
+            result = serializers_users.data
+        except Exception as e:
+            print(e)
+            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        return Response(result, status=status.HTTP_200_OK)

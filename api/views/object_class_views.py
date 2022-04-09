@@ -5,7 +5,7 @@ from rest_framework.request import Request
 from rest_framework import status, renderers
 from api.models.area_model import *
 from api.library.utils import splitHeader
-from api.models.object_class import ObjectClass
+from api.models.object_information import ObjectClass
 from api.serializers import ObjectClassSerializer
 
 
