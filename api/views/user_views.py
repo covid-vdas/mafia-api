@@ -127,25 +127,17 @@ class UserDetailView(APIView):
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
-            list_user = User.objects
-            user_role_login = Role.objects(id=user.role_id).first()
+            user = User.objects(id=id).first()
+            serializers_user = UserSerializer(user)
+            # add role object to dict user
+            result = dynamically_user(OrderedDict(serializers_user.data))
 
-            if user_role_login.name == 'staff':
-                return Response({'message': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
-
-            print(user.username)
-            if user_role_login.name == 'manager':
-                list_user = User.objects(managed_by=str(user.id))
-
-            serializers_users = UserSerializer(list_user, many=True)
-            # update role information to user
-            for user_serializer in serializers_users.data:
-                dynamically_user(user_serializer)
-
-            return Response(serializers_users.data, status=status.HTTP_200_OK)
+            if bool(user) is False:
+                return Response({'message': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             print(e)
-            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        return Response(result, status=status.HTTP_200_OK)
 
     def patch(self, request: Request, id):
         """
