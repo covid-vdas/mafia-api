@@ -10,7 +10,6 @@ urlpatterns = [
     path('url/', CameraView.as_view()),
     path('user/', UserView.as_view()),
     path('user/<slug:id>/', UserDetailView.as_view()),
-    path('manage/', ManageUserView.as_view()),
     path('login/', LoginView.as_view(), name='login'),
     path('role/', RoleView.as_view()),
     path('role/<slug:id>/', RoleDetailView.as_view()),

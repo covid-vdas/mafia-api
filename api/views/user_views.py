@@ -46,28 +46,24 @@ class UserView(APIView):
 
         try:
             list_user = User.objects
-            serializers_users = UserSerializer(list_user, many=True)
+            user_role_login = Role.objects(id=user.role_id).first()
 
-            is_staff = Role.objects(id=user.role_id).first()
-
-            if is_staff.name == 'staff':
+            if user_role_login.name == 'staff':
                 return Response({'message': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
 
-            serializers_user = UserSerializer(user)
+            print(user.username)
+            if user_role_login.name == 'manager':
+                list_user = User.objects(managed_by=str(user.id))
 
+            serializers_users = UserSerializer(list_user, many=True)
             # update role information to user
             for user_serializer in serializers_users.data:
                 dynamically_user(user_serializer)
 
-            if request.GET.get('isManager', '') == 'true':
-                result = [user for user in serializers_users.data if user['role_id']['name'] != 'admin']
-            else:
-                result = serializers_users.data
+            return Response(serializers_users.data, status=status.HTTP_200_OK)
         except Exception as e:
             print(e)
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        return Response(result, status=status.HTTP_200_OK)
 
     def post(self, request: Request):
         """
@@ -85,6 +81,11 @@ class UserView(APIView):
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
+
+            user_role_login = Role.objects(id=user.role_id).first()
+            if user_role_login.name == 'staff':
+                return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+
             if request.data.get('password') is not None:
                 hashed_password = encryption(request.data['password'])
                 request.data['password'] = encryption(request.data['password']).decode('utf-8')
@@ -233,7 +234,7 @@ class UserDetailView(APIView):
                         staff_user.managed_by = str(user_admin.id)
                         print(staff_user.managed_by)
                         staff_user.save()
-                        print('xxx')
+                        print('flag')
 
                 user_delete.delete()
                 print('da xoa')
@@ -276,44 +277,3 @@ class LoginView(APIView):
             'data': result,
             'token': token
         }, status=status.HTTP_200_OK)
-
-
-class ManageUserView(APIView):
-    renderer_classes = [renderers.JSONRenderer]  # render format "application/json"
-
-    def get(self, request: Request):
-        """
-            List all user
-            @param  self: class instance
-            @param  request: received data from user's request
-            @return Response: List of user and status
-        """
-
-        if request.headers.get('Authorization') is None:
-            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-        elif request.headers.get('Authorization').find('Bearer') == -1:
-            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-        user = splitHeader(request.headers['Authorization'].split(' ')[1])
-        if bool(user) is False:
-            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-        try:
-            list_user = User.objects(managed_by=str(user.id))
-            serializers_users = UserSerializer(list_user, many=True)
-            print(list_user)
-            is_staff = Role.objects(id=user.role_id).first()
-
-            if is_staff.name == 'staff':
-                return Response({'message': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
-
-            serializers_user = UserSerializer(user)
-
-            # update role information to user
-            for user_serializer in serializers_users.data:
-                dynamically_user(user_serializer)
-
-            result = serializers_users.data
-        except Exception as e:
-            print(e)
-            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        return Response(result, status=status.HTTP_200_OK)
