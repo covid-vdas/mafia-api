@@ -7,11 +7,11 @@ from api.models.violation_type_model import *
 from api.serializers import ViolationTypeSerializer
 from api.library.utils import splitHeader
 
+
 class ViolationTypeView(APIView):
     renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request: Request):
-
         if request.headers.get('Authorization') is None:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
         elif request.headers.get('Authorization').find('Bearer') == -1:
