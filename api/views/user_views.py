@@ -245,7 +245,7 @@ class UserDetailView(APIView):
                         staff_user.save()
                         print('flag')
 
-                #user_delete.delete()
+                user_delete.delete()
                 print('da xoa')
             else:
                 return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
