@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import *
-from .views import getAllCamera, getAllArea
+from .views import getAllCamera, getAllArea, getAllManager
 
 urlpatterns = [
     # path('image/', ImageView.as_view()),
@@ -9,6 +9,7 @@ urlpatterns = [
     # path('video/', VideoView.as_view()),
     path('url/', CameraView.as_view()),
     path('user/', UserView.as_view()),
+    path('user/getAllManager/', getAllManager),
     path('user/<slug:id>/', UserDetailView.as_view()),
     path('login/', LoginView.as_view(), name='login'),
     path('role/', RoleView.as_view()),

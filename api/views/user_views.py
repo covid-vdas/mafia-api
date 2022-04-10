@@ -1,6 +1,6 @@
 import datetime
 import json
-
+from rest_framework.decorators import api_view
 from bson import ObjectId
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -127,17 +127,25 @@ class UserDetailView(APIView):
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
-            user = User.objects(id=id).first()
-            serializers_user = UserSerializer(user)
-            # add role object to dict user
-            result = dynamically_user(OrderedDict(serializers_user.data))
+            list_user = User.objects
+            user_role_login = Role.objects(id=user.role_id).first()
 
-            if bool(user) is False:
-                return Response({'message': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+            if user_role_login.name == 'staff':
+                return Response({'message': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
+
+            print(user.username)
+            if user_role_login.name == 'manager':
+                list_user = User.objects(managed_by=str(user.id))
+
+            serializers_users = UserSerializer(list_user, many=True)
+            # update role information to user
+            for user_serializer in serializers_users.data:
+                dynamically_user(user_serializer)
+
+            return Response(serializers_users.data, status=status.HTTP_200_OK)
         except Exception as e:
             print(e)
-
-        return Response(result, status=status.HTTP_200_OK)
+            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
     def patch(self, request: Request, id):
         """
@@ -230,13 +238,14 @@ class UserDetailView(APIView):
                 if role_user_delete == 'manager':
                     user_admin = User.objects(role_id=str(role_admin.id)).first()
                     staff_managed_by_user = User.objects(managed_by=str(user_delete.id))
+                    print(user_delete.id)
                     for staff_user in staff_managed_by_user:
-                        staff_user.managed_by = str(user_admin.id)
                         print(staff_user.managed_by)
+                        staff_user.managed_by = str(user_admin.id)
                         staff_user.save()
                         print('flag')
 
-                user_delete.delete()
+                #user_delete.delete()
                 print('da xoa')
             else:
                 return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -268,6 +277,10 @@ class LoginView(APIView):
             serializers_user = UserSerializer(user)
             if bool(user) is False:
                 return Response({'message': 'Username or password invalid.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not user.is_active:
+                return Response({'message': 'Authentication invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+
             # add role to dict user
             result = dynamically_user(OrderedDict(serializers_user.data))
         except Exception as e:
@@ -277,3 +290,26 @@ class LoginView(APIView):
             'data': result,
             'token': token
         }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def getAllManager(request: Request):
+    if request.headers.get('Authorization') is None:
+        return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+    elif request.headers.get('Authorization').find('Bearer') == -1:
+        return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    user = splitHeader(request.headers['Authorization'].split(' ')[1])
+    if bool(user) is False:
+        return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+    try:
+        role_manager = Role.objects(name='manager').first()
+        list_manager = User.objects.filter(role_id=role_manager.id)
+        serializers_users = UserSerializer(list_manager, many=True)
+        # update role information to user
+        for user_serializer in serializers_users.data:
+            dynamically_user(user_serializer)
+
+        return Response(serializers_users.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
