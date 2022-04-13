@@ -9,11 +9,19 @@ from rest_framework import status, renderers
 from api.serializers import UserSerializer
 from api.models.user_model import User
 from api.models.role_model import Role
+from api.models.area_model import Area
 from api.library.utils import auth, encryption, generate_token, splitHeader
 from collections import OrderedDict
 
 
 def dynamically_user(user_serializer):
+    """
+        @ user_serializer: OrderedList
+
+        transforms role_id to store id and name
+
+        return OrderedList
+    """
     try:
         role = Role.objects(id=ObjectId(user_serializer['role_id'])).first()
         user_serializer.pop('password', None)
@@ -179,6 +187,25 @@ class UserDetailView(APIView):
 
             serializers_user = UserSerializer(user, data=request.data, partial=True)  # serializer data for validation
 
+            if request.data.get('role_id') is not None:
+                role_change = Role.objects(id=request.data.get('role_id')).first()['name']
+
+            if role_name_user_login == 'admin':
+                if role_name_user == 'manager' and role_change == 'staff':
+                    list_old_staff = User.objects(managed_by=str(user.id))
+                    area_managed_by_manager = Area.objects(managed_manager=str(user.id)).first()
+                    if area_managed_by_manager is not None:
+                        area_managed_by_manager.managed_manager = ''
+                        area_managed_by_manager.save()
+                    for old_staff in list_old_staff:
+                        old_staff.managed_by = ''
+                        old_staff.save()
+                elif role_name_user == 'staff' and role_change == 'manager':
+                    user.managed_by = ''
+                    area_managed_by_staff = Area.objects(managed_staff=str(user.id)).first()
+                    if area_managed_by_staff is not None:
+                        area_managed_by_staff.managed_staff = ''
+                        area_managed_by_staff.save()
             if serializers_user.is_valid():
                 user.updated_at = datetime.datetime.utcnow()  # update updated_at field
                 serializers_user.save()  # save new instance to db

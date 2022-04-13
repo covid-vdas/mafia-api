@@ -23,11 +23,15 @@ class CameraView(APIView):
         if bool(user) is False:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        user_role_login = Role.objects(id=user.role_id).first()
-        if user_role_login == 'admin':
-            cameras = Camera.objects
-            camera_serializer = CameraSerializer(cameras, many=True)
-            return Response(camera_serializer.data, status=status.HTTP_200_OK)
+        try:
+            user_role_login = Role.objects(id=user.role_id).first()
+
+            if user_role_login.name == 'admin':
+                cameras = Camera.objects
+                camera_serializer = CameraSerializer(cameras, many=True)
+                return Response(camera_serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
 
         return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -40,14 +44,18 @@ class CameraView(APIView):
         if bool(user) is False:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        user_role_login = Role.objects(id=user.role_id).first()
-        if user_role_login.name == 'staff':
-            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            user_role_login = Role.objects(id=user.role_id).first()
+            if user_role_login.name == 'staff':
+                return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        camera_serializer = CameraSerializer(data=request.data)
-        if camera_serializer.is_valid():
-            camera_serializer.save()
-            return Response(camera_serializer.data, status=status.HTTP_200_OK)
+            camera_serializer = CameraSerializer(data=request.data)
+            if camera_serializer.is_valid():
+                camera_serializer.save()
+                return Response(camera_serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+
         return Response(camera_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -89,16 +97,19 @@ class CameraDetailView(APIView):
         if bool(user) is False:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        user_role_login = Role.objects(id=user.role_id).first()
-        if user_role_login.name == 'staff':
-            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            user_role_login = Role.objects(id=user.role_id).first()
+            if user_role_login.name == 'staff':
+                return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        camera = Camera.objects(id=id).first()
-        camera_serializer = CameraSerializer(camera, data=request.data, partial=True)
-        if camera_serializer.is_valid():
-            camera.updated_at = datetime.datetime.utcnow()
-            camera_serializer.save()
-            return Response(camera_serializer.data, status=status.HTTP_200_OK)
+            camera = Camera.objects(id=id).first()
+            camera_serializer = CameraSerializer(camera, data=request.data, partial=True)
+            if camera_serializer.is_valid():
+                camera.updated_at = datetime.datetime.utcnow()
+                camera_serializer.save()
+                return Response(camera_serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
         return Response(camera_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request: Request, id):

@@ -68,6 +68,9 @@ class ImageDetailView(APIView):
         elif not ObjectId.is_valid(id):
             return Response({'message': 'Object ID is not valid'}, status=status.HTTP_400_BAD_REQUEST)
 
+        if request.data.get('url') is not None:
+            return Response({'message': 'Cannot update url image'})
+
         user = splitHeader(request.headers['Authorization'].split(' ')[1])
         if bool(user) is False:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)

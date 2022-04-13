@@ -5,5 +5,5 @@ from .area_view import *
 from .camera_view import *
 from .violation_view import *
 from .violationType_view import *
-from .object_class_views import *
+from .object_information_views import *
 from .image_view import *

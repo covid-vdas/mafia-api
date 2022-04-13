@@ -5,11 +5,11 @@ from rest_framework.request import Request
 from rest_framework import status, renderers
 from api.models.area_model import *
 from api.library.utils import splitHeader
-from api.models.object_information import ObjectClass
+from api.models.object_information import ObjectInformation
 from api.serializers import ObjectClassSerializer
 
 
-class ObjectClassView(APIView):
+class ObjectInformationView(APIView):
     renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request: Request):
@@ -21,7 +21,7 @@ class ObjectClassView(APIView):
         if bool(user) is False:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
         try:
-            object_class = ObjectClass.objects
+            object_class = ObjectInformation.objects
 
             object_class_serializer = ObjectClassSerializer(object_class, many=True)
             return Response(object_class_serializer.data, status=status.HTTP_200_OK)
@@ -44,7 +44,7 @@ class ObjectClassView(APIView):
         return Response(object_class_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ObjectClassDetailView(APIView):
+class ObjectInformationDetailView(APIView):
     renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request, id):
@@ -59,7 +59,7 @@ class ObjectClassDetailView(APIView):
         if bool(user) is False:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        object_class = ObjectClass.objects(id=id).first()
+        object_class = ObjectInformation.objects(id=id).first()
         object_class_serializer = ObjectClassSerializer(object_class)
         return Response(object_class_serializer.data, status=status.HTTP_200_OK)
 
@@ -76,7 +76,7 @@ class ObjectClassDetailView(APIView):
         if bool(user) is False:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        object_class = ObjectClass.objects(id=id).first()
+        object_class = ObjectInformation.objects(id=id).first()
         object_class_serializer = ObjectClassSerializer(object_class, data=request.data, partial=True)
         if object_class_serializer.is_valid():
             object_class.object_class_serializer = datetime.datetime.utcnow()
@@ -95,6 +95,6 @@ class ObjectClassDetailView(APIView):
         user = splitHeader(request.headers['Authorization'].split(' ')[1])
         if bool(user) is False:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-        object_class = ObjectClass.objects(id=id).first()
+        object_class = ObjectInformation.objects(id=id).first()
         object_class.delete()
         return Response({'message': 'deleted successfully.'}, status=status.HTTP_200_OK)

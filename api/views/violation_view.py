@@ -79,19 +79,19 @@ class ViolationDetailView(APIView):
         violation_serializer = ViolationSerializer(violation, data=request.data, partial=True)
         return Response(violation_serializer.data, status=status.HTTP_200_OK)
 
-    def delete(self, request: Request, id):
-
-        if request.headers.get('Authorization') is None:
-            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-        elif request.headers.get('Authorization').find('Bearer') == -1:
-            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-        elif not ObjectId.is_valid(id):
-            return Response({'message': 'Object ID is not valid'}, status=status.HTTP_400_BAD_REQUEST)
-
-        user = splitHeader(request.headers['Authorization'].split(' ')[1])
-        if bool(user) is False:
-            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        violation = Violation.objects(id=id).first()
-        violation.delete()
-        return Response({'message': 'deleted successfully.'}, status=status.HTTP_200_OK)
+    # def delete(self, request: Request, id):
+    #
+    #     if request.headers.get('Authorization') is None:
+    #         return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+    #     elif request.headers.get('Authorization').find('Bearer') == -1:
+    #         return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+    #     elif not ObjectId.is_valid(id):
+    #         return Response({'message': 'Object ID is not valid'}, status=status.HTTP_400_BAD_REQUEST)
+    #
+    #     user = splitHeader(request.headers['Authorization'].split(' ')[1])
+    #     if bool(user) is False:
+    #         return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+    #
+    #     violation = Violation.objects(id=id).first()
+    #     violation.delete()
+    #     return Response({'message': 'deleted successfully.'}, status=status.HTTP_200_OK)

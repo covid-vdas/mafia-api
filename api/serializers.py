@@ -60,5 +60,5 @@ class ViolationTypeSerializer(serializer_mongoengine.DocumentSerializer):
 
 class ObjectClassSerializer(serializer_mongoengine.DocumentSerializer):
     class Meta:
-        model = ObjectClass
+        model = ObjectInformation
         fields = '__all__'
