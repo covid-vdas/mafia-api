@@ -8,7 +8,7 @@ from api.serializers import ViolationSerializer
 from api.library.utils import splitHeader
 from bson import ObjectId
 from api.models.camera_model import *
-
+from collections import OrderedDict
 
 class ViolationView(APIView):
     renderer_classes = [renderers.JSONRenderer]
@@ -67,7 +67,8 @@ class ViolationDetailView(APIView):
         try:
             violation = Violation.objects(id=id).first()
             camera_serializer = ViolationSerializer(violation)
-            return Response(camera_serializer.data, status=status.HTTP_200_OK)
+            result_violation = dynamically_camera(OrderedDict(camera_serializer.data))
+            return Response(result_violation, status=status.HTTP_200_OK)
         except Exception as e:
             print(e)
 
