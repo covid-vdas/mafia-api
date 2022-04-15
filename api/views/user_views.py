@@ -208,6 +208,7 @@ class UserDetailView(APIView):
                     if area_managed_by_staff is not None:
                         area_managed_by_staff.managed_staff = ''
                         area_managed_by_staff.save()
+            print(11)
             if serializers_user.is_valid():
                 user.updated_at = datetime.datetime.utcnow()  # update updated_at field
                 serializers_user.save()  # save new instance to db
