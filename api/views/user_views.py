@@ -187,6 +187,8 @@ class UserDetailView(APIView):
 
             serializers_user = UserSerializer(user, data=request.data, partial=True)  # serializer data for validation
 
+            role_change = ''
+
             if request.data.get('role_id') is not None:
                 role_change = Role.objects(id=request.data.get('role_id')).first()['name']
 
