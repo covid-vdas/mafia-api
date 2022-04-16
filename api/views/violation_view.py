@@ -9,10 +9,17 @@ from api.library.utils import splitHeader
 from bson import ObjectId
 from api.models.camera_model import *
 from collections import OrderedDict
+from api.models.violation_type_model import *
+from api.models.object_information import *
+from api.models.image_model import *
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+
 
 class ViolationView(APIView):
     renderer_classes = [renderers.JSONRenderer]
 
+    @method_decorator(cache_page(60*2))
     def get(self, request: Request):
 
         if request.headers.get('Authorization') is None:
@@ -110,6 +117,7 @@ class ViolationDetailView(APIView):
     #     return Response({'message': 'deleted successfully.'}, status=status.HTTP_200_OK)
 
 
+@cache_page(60)
 @api_view(['GET'])
 def getAllViolation(request: Request, camera_id):
 
@@ -162,10 +170,29 @@ def dynamically_camera(violation_serializer):
     """
     try:
         camera = Camera.objects(id=ObjectId(violation_serializer['camera_id'])).first()
-        violation_serializer['camera_id'] = {
-            'id': str(violation_serializer['camera_id']),
-            'name': str(camera.name)
-        }
+        violation_type = ViolationType.objects(id=violation_serializer['type_id']).first()
+        object_information = ObjectInformation.objects(id=violation_serializer['class_id']).first()
+        image = Image.objects(id=violation_serializer['image_id']).first()
+
+        violation_serializer.update({
+            'type_id': {
+                'id': str(violation_serializer['type_id']),
+                'name': str(violation_type.name)
+            },
+            'camera_id': {
+                'id': str(violation_serializer['camera_id']),
+                'name': str(camera.name)
+            },
+            'class_id': {
+                'id': str(violation_serializer['type_id']),
+                'name': str(object_information.name)
+            },
+            'image_id': {
+                'id': str(violation_serializer['image_id']),
+                'name': str(image.name)
+            }
+        })
+
     except Exception as e:
         print(e)
     return violation_serializer
