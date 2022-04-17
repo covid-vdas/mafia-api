@@ -14,12 +14,12 @@ from api.models.object_information import *
 from api.models.image_model import *
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-
+from django.core.cache import cache
 
 class ViolationView(APIView):
     renderer_classes = [renderers.JSONRenderer]
 
-    @method_decorator(cache_page(60*2))
+
     def get(self, request: Request):
 
         if request.headers.get('Authorization') is None:

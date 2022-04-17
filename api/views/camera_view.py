@@ -16,7 +16,6 @@ from django.utils.decorators import method_decorator
 class CameraView(APIView):
     renderer_classes = [renderers.JSONRenderer]
 
-    @method_decorator(cache_page(60 * 2))
     def get(self, request: Request):
         if request.headers.get('Authorization') is None:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
