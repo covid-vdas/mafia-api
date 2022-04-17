@@ -33,7 +33,7 @@ class RoleDetailView(APIView):
     def get(self, request, id):
         """
             get Role by id
-
+            @id: id of role
         """
         if request.headers.get('Authorization') is None:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
