@@ -50,7 +50,7 @@ class AreaView(APIView):
         if role is None:
             return Response({'message': 'role not found'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if role.name == 'admin':
+        if role.name == 'admin' or role.name == 'manager':
             area_serializer = AreaSerializer(data=request.data)
             if area_serializer.is_valid():
                 area_serializer.save()
