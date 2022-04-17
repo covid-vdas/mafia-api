@@ -31,7 +31,10 @@ class RoleDetailView(APIView):
     renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request, id):
+        """
+            get Role by id
 
+        """
         if request.headers.get('Authorization') is None:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
         elif request.headers.get('Authorization').find('Bearer') == -1:
