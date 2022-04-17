@@ -12,9 +12,7 @@ from collections import OrderedDict
 from api.models.violation_type_model import *
 from api.models.object_information import *
 from api.models.image_model import *
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from django.core.cache import cache
+
 
 class ViolationView(APIView):
     renderer_classes = [renderers.JSONRenderer]
@@ -117,7 +115,6 @@ class ViolationDetailView(APIView):
     #     return Response({'message': 'deleted successfully.'}, status=status.HTTP_200_OK)
 
 
-@cache_page(60)
 @api_view(['GET'])
 def getAllViolation(request: Request, camera_id):
 

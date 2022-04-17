@@ -9,8 +9,7 @@ from api.library.utils import splitHeader
 from bson import ObjectId
 from api.models.area_model import Area
 from api.models.role_model import Role
-from django.views.decorators.cache import cache_page
-from django.utils.decorators import method_decorator
+
 
 
 class CameraView(APIView):
@@ -143,7 +142,7 @@ class CameraDetailView(APIView):
             return Response({'message': 'object not found.'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-@cache_page(60 * 2)
+
 @api_view(['GET'])
 def getAllCamera(request: Request, area_id):
     if request.headers.get('Authorization') is None:
