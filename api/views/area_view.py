@@ -110,17 +110,23 @@ class AreaDetailView(APIView):
         if bool(user) is False:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        user_role_login = Role.objects(id=user.role_id).first()
-        if user_role_login.name == 'admin' or user_role_login == 'manager':
-            area = Area.objects(id=id).first()
-            print(area)
-            area_serializer = AreaSerializer(area, data=request.data, partial=True)
-            if area_serializer.is_valid():
-                area.updated_at = datetime.datetime.utcnow()
-                area_serializer.save()
-            return Response(area_serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response({'message: only admin permission.'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            user_role_login = Role.objects(id=user.role_id).first()
+            if user_role_login.name == 'admin' or user_role_login == 'manager':
+                area = Area.objects(id=ObjectId(id)).first()
+                area_serializer = AreaSerializer(area, data=request.data, partial=True)
+
+                if area_serializer.is_valid():
+                    area.updated_at = datetime.datetime.utcnow()
+                    area_serializer.save()
+                print(area_serializer.is_valid())
+                return Response(area_serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'message: only admin permission.'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            print(e)
+            return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+
 
     def delete(self, request, id):
         if request.headers.get('Authorization') is None:

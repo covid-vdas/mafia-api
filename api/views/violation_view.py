@@ -206,6 +206,7 @@ def getAllViolation(request: Request, camera_id):
         custom_violation_arr = []
         for violation in list_violation_by_camera:
             custom_violation = {
+                'id': str(violation['_id']),
                 'type_id': {
                     'id': str(violation['violation_type_arr']['_id']),
                     'name': violation['violation_type_arr']['name']
