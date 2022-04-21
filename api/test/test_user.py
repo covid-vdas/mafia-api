@@ -271,29 +271,3 @@ class TestUser(APITestCase):
         self.assertEqual(users.status_code, status.HTTP_200_OK)
 
 
-    def test_manage_user(self):
-        counter = 0
-        list_user = [
-            {
-                'username': 'quanghuy',
-                'password': '123456@Bc'
-            },
-            {
-                'username': 'quanghuy123',
-                'password': '123456@Bc'
-            }
-        ]
-        for user in list_user:
-            print(user)
-            counter += 1
-            res = self.client.post('/api/login/', user, format="json")
-
-            token = res.data['token']
-            header = {
-                'HTTP_AUTHORIZATION': f'Bearer {token}'
-            }
-            users = self.client.get('/api/manage/', **header)
-
-            self.assertEqual(users.status_code, status.HTTP_200_OK)
-
-        print('Pass {} on {}'.format(counter, len(list_user)))

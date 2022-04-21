@@ -11,15 +11,15 @@ ROLE = {
 }
 
 
-class TestViolation(APITestCase):
+class TestRole(APITestCase):
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         # connectDB()
 
-    # Case 1: Get all camera
-    def test_get_all_by_violation(self):
+    # Case 1: Get all role
+    def test_get_all_role(self):
         counter = 0
 
         res = self.client.post('/api/login/', {'username': 'vdas-admin', 'password': '123456@Bc'}, format="json")
@@ -28,16 +28,16 @@ class TestViolation(APITestCase):
         header = {
             'HTTP_AUTHORIZATION': f'Bearer {token}'
         }
-        violation = self.client.get('/api/violation/', **header)
+        role = self.client.get('/api/role/', **header)
 
-        self.assertEqual(violation.status_code, status.HTTP_200_OK)
+        self.assertEqual(role.status_code, status.HTTP_200_OK)
 
         counter += 1
 
         print('Pass {} on {}'.format(counter, 1))
 
-    # Case 2: Get camera by id
-    def test_get_violation_by_id(self):
+    # Case 2: Get role by id
+    def test_get_role_by_id(self):
         counter = 0
 
         res = self.client.post('/api/login/', {'username': 'vdas-admin', 'password': '123456@Bc'}, format="json")
@@ -46,9 +46,9 @@ class TestViolation(APITestCase):
         header = {
             'HTTP_AUTHORIZATION': f'Bearer {token}'
         }
-        violation = self.client.get('/api/violation/' + '6253184c0671f4fe61cae925/', **header)
+        role = self.client.get('/api/role/6216644e748d2599a7e8d775' + '/', **header)
 
-        self.assertEqual(violation.status_code, status.HTTP_200_OK)
+        self.assertEqual(role.status_code, status.HTTP_200_OK)
 
         counter += 1
 
