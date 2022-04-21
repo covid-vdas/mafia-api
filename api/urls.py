@@ -23,8 +23,8 @@ urlpatterns = [
     path('objectinformation/', ObjectInformationView.as_view()),
     path('objectinformation/<slug:id>/', ObjectInformationDetailView.as_view()),
     path('violation/', ViolationView.as_view()),
-    path('violation/getAllViolation/<slug:camera_id>/', getAllViolation),
-    path('violation/listViolationByCamera/<slug:camera_id>/', listViolationByCamera),
+    path('violation/getAllViolation/<slug:camera_id>/', getAllViolation),  # for get data
+    path('violation/listViolationByCamera/<slug:camera_id>/', listViolationByCamera), # for chart
     path('violation/<slug:id>/', ViolationDetailView.as_view()),
     path('violationtype/', ViolationTypeView.as_view()),
     path('violationtype/<slug:id>/', ViolationTypeDetailView.as_view()),

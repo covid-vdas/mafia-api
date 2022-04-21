@@ -113,6 +113,7 @@ class AreaDetailView(APIView):
         user_role_login = Role.objects(id=user.role_id).first()
         if user_role_login.name == 'admin' or user_role_login == 'manager':
             area = Area.objects(id=id).first()
+            print(area)
             area_serializer = AreaSerializer(area, data=request.data, partial=True)
             if area_serializer.is_valid():
                 area.updated_at = datetime.datetime.utcnow()

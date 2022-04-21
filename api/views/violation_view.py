@@ -13,6 +13,7 @@ from collections import OrderedDict
 from api.models.violation_type_model import *
 from api.models.object_information import *
 from api.models.image_model import *
+from django.http import JsonResponse
 
 
 class ViolationView(APIView):
@@ -145,14 +146,95 @@ def getAllViolation(request: Request, camera_id):
             else:
                 return Response({'message': 'query page invalid'}, status=status.HTTP_400_BAD_REQUEST)
 
-        list_violation_by_camera = Violation.objects(camera_id=camera_id).skip(offset).limit(int(limit_record))
-        list_violation_by_camera_serializer = ViolationSerializer(list_violation_by_camera, many=True)
+        total_count = Violation.objects(camera_id=camera_id).count()
+        list_violation_by_camera = Violation.objects(camera_id=camera_id).aggregate(
+            [
+                {
+                  '$addFields': {
+                      'camera_object_id': {'$toObjectId': '$camera_id'}
+                  }
+                },
+                {
+                    '$lookup': {
+                        'from': 'violation_type',
+                        'localField': 'type_id',
+                        'foreignField': '_id',
+                        'as': 'violation_type_arr'
+                    }
+                },
+                {
+                    '$unwind': '$violation_type_arr'
+                },
+                {
+                    '$lookup': {
+                        'from': 'object_information',
+                        'localField': 'class_id',
+                        'foreignField': '_id',
+                        'as': 'information_arr'
+                    }
+                },
+                {
+                    '$unwind': '$information_arr'
+                },
+                {
+                    '$lookup': {
+                        'from': 'image',
+                        'localField': 'image_id',
+                        'foreignField': '_id',
+                        'as': 'image_arr'
+                    }
+                },
+                {
+                    '$unwind': '$image_arr'
+                },
+                {
+                    '$lookup': {
+                        'from': 'camera',
+                        'localField': 'camera_object_id',
+                        'foreignField': '_id',
+                        'as': 'camera_arr'
+                    }
+                },
+                {
+                    '$unwind': '$camera_arr'
+                }
+            ]
+        )
 
-        for violation in list_violation_by_camera_serializer.data:
-            dynamically_camera(violation)
+        custom_violation_arr = []
+        for violation in list_violation_by_camera:
 
-        return Response(list_violation_by_camera_serializer.data, status=status.HTTP_200_OK)
+            custom_violation = {
+                'type_id': {
+                    'id': str(violation['violation_type_arr']['_id']),
+                    'name': violation['violation_type_arr']['name']
+                },
+                'camera_id': {
+                    'id': str(violation['camera_arr']['_id']),
+                    'name': violation['camera_arr']['name']
+                },
+                'class_id': {
+                    'id': str(violation['violation_type_arr']['_id']),
+                    'name': violation['information_arr']['name']
+                },
+                'image_id': {
+                    'id': str(violation['violation_type_arr']['_id']),
+                    'name': violation['image_arr']['name']
+                },
+                'distance': float(violation.get('distance', 1)),
+                'created_at': violation['created_at'],
+                'updated_at': violation['updated_at']
+            }
+            custom_violation_arr.append(custom_violation)
+            #dynamically_camera(violation)
+        print(violation)
+        #list_violation_by_camera_serializer = ViolationSerializer(list_violation_by_camera, many=True)
+        return JsonResponse({
+            'total': total_count,
+            'data': list(custom_violation_arr)
+        }, status=status.HTTP_200_OK)
     except Exception as e:
+        print(e)
         return Response({'message': 'query page or limit record invalid'}, status=status.HTTP_400_BAD_REQUEST)
     return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -210,7 +292,6 @@ def listViolationByCamera(request: Request, camera_id):
                 }
             ]
         )
-
         total_case_each_day = []
         total_distance = 0
         total_facemask = 0
@@ -256,10 +337,10 @@ def dynamically_camera(violation_serializer):
         return OrderedList
     """
     try:
-        camera = Camera.objects(id=ObjectId(violation_serializer['camera_id'])).first()
-        violation_type = ViolationType.objects(id=violation_serializer['type_id']).first()
-        object_information = ObjectInformation.objects(id=violation_serializer['class_id']).first()
-        image = Image.objects(id=violation_serializer['image_id']).first()
+        camera = Camera.objects.get(id=ObjectId(violation_serializer['camera_id']))
+        violation_type = ViolationType.objects.get(id=violation_serializer['type_id'])
+        object_information = ObjectInformation.objects.get(id=violation_serializer['class_id'])
+        image = Image.objects.get(id=violation_serializer['image_id'])
 
         violation_serializer.update({
             'type_id': {
