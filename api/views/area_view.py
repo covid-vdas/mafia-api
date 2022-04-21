@@ -111,7 +111,7 @@ class AreaDetailView(APIView):
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         user_role_login = Role.objects(id=user.role_id).first()
-        if user_role_login.name == 'admin':
+        if user_role_login.name == 'admin' or user_role_login == 'manager':
             area = Area.objects(id=id).first()
             area_serializer = AreaSerializer(area, data=request.data, partial=True)
             if area_serializer.is_valid():
