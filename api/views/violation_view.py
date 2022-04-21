@@ -413,7 +413,7 @@ def listViolationByCamera(request: Request, camera_id):
         return Response({
             'total_violation': total_violation_all_days,
             'total_distance': total_distance,
-            'toal_facemask': total_facemask,
+            'total_facemask': total_facemask,
             'data': list_total_violation
         }, status=status.HTTP_200_OK)
     except Exception as e:
