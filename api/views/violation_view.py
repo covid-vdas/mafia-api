@@ -225,7 +225,7 @@ def listViolationByCamera(request: Request, camera_id):
             to_date = from_date.replace(hour=0, minute=0, second=0) + datetime.timedelta(days=1)
             list_violation = Violation.objects(camera_id=case_day['_id']['camera_id']).filter(created_at__lt=to_date, created_at__gt=from_date)
             for violation in list_violation:
-                violation_type = ViolationType.objects(id=ObjectId(violation.type_id)).first()
+                violation_type = ViolationType.objects.get(id=ObjectId(violation.type_id))
                 if violation_type.name == 'Facemask':
                     total_facemask += 1
                     case_each_day['faceMask'] += 1
