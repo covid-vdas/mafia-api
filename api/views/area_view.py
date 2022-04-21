@@ -76,20 +76,27 @@ class AreaDetailView(APIView):
         if bool(user) is False:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        user_role_login = Role.objects(id=user.role_id).first()
-        if user_role_login.name == 'manager':
-            area_of_manager = Area.objects(id=id).first()
-            if str(user.id) != area_of_manager.managed_manager:
-                return Response({'message: Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            user_role_login = Role.objects(id=user.role_id).first()
+            if user_role_login.name == 'manager':
+                area_of_manager = Area.objects(id=id).first()
+                if str(user.id) != area_of_manager.managed_manager:
+                    return Response({'message: Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        if user_role_login.name == 'staff':
-            area_of_manager = Area.objects(id=id).first()
-            if str(user.id) != area_of_manager.managed_staff:
-                return Response({'message: Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
+            if user_role_login.name == 'staff':
+                area_of_manager = Area.objects(id=id).first()
+                if str(user.id) != area_of_manager.managed_staff:
+                    return Response({'message: Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        area = Area.objects(id=id).first()
-        area_serializer = AreaSerializer(area)
-        return Response(area_serializer.data, status=status.HTTP_200_OK)
+            area = Area.objects(id=id).first()
+            if area is not None:
+                area_serializer = AreaSerializer(area)
+                return Response(area_serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'Area not found.'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            print(e)
+            return Response(area_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, id):
         if request.headers.get('Authorization') is None:

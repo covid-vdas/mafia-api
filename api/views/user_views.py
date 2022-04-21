@@ -16,7 +16,7 @@ from collections import OrderedDict
 
 def dynamically_user(user_serializer):
     """
-        @ user_serializer: OrderedList
+        @user_serializer: OrderedList
 
         transforms role_id to store id and name
 

@@ -11,6 +11,9 @@ class Violation(Document):
     created_at = DateTimeField(default=datetime.datetime.utcnow())
     updated_at = DateTimeField(default=datetime.datetime.utcnow())
 
-
-
+    meta = {
+        "indexes": [
+            ['camera_id']
+        ]
+    }
 

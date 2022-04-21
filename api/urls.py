@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import *
-from .views import getAllCamera, getAllArea, getAllManager, getAllViolation
+from .views import getAllCamera, getAllArea, getAllManager, getAllViolation, listViolationByCamera
 
 urlpatterns = [
     # path('image/', ImageView.as_view()),
@@ -24,6 +24,7 @@ urlpatterns = [
     path('objectinformation/<slug:id>/', ObjectInformationDetailView.as_view()),
     path('violation/', ViolationView.as_view()),
     path('violation/getAllViolation/<slug:camera_id>/', getAllViolation),
+    path('violation/listViolationByCamera/<slug:camera_id>/', listViolationByCamera),
     path('violation/<slug:id>/', ViolationDetailView.as_view()),
     path('violationtype/', ViolationTypeView.as_view()),
     path('violationtype/<slug:id>/', ViolationTypeDetailView.as_view()),

@@ -19,7 +19,7 @@ class TestCamera(APITestCase):
         # connectDB()
 
     # Case 1: Get all camera
-    def test_get_all_camera(self):
+    def test_get_all_area(self):
         counter = 0
 
         res = self.client.post('/api/login/', {'username': 'vdas-admin', 'password': '123456@Bc'}, format="json")
@@ -28,7 +28,26 @@ class TestCamera(APITestCase):
         header = {
             'HTTP_AUTHORIZATION': f'Bearer {token}'
         }
-        users = self.client.get('/api/camera/', **header)
+        users = self.client.get('/api/area/', **header)
+
+        self.assertEqual(users.status_code, status.HTTP_200_OK)
+
+        counter += 1
+
+        print('Pass {} on {}'.format(counter, 1))
+
+    # Case 2: Get all camera pagination
+
+    def test_get_all_area(self):
+        counter = 0
+
+        res = self.client.post('/api/login/', {'username': 'vdas-admin', 'password': '123456@Bc'}, format="json")
+
+        token = res.data['token']
+        header = {
+            'HTTP_AUTHORIZATION': f'Bearer {token}'
+        }
+        users = self.client.get('/api/area/?page=2&limit=10', **header)
 
         self.assertEqual(users.status_code, status.HTTP_200_OK)
 
@@ -37,7 +56,7 @@ class TestCamera(APITestCase):
         print('Pass {} on {}'.format(counter, 1))
 
     # Case 2: Get camera by id
-    def test_get_camera_by_id(self):
+    def test_get_area_by_id(self):
         counter = 0
 
         res = self.client.post('/api/login/', {'username': 'vdas-admin', 'password': '123456@Bc'}, format="json")
@@ -46,7 +65,7 @@ class TestCamera(APITestCase):
         header = {
             'HTTP_AUTHORIZATION': f'Bearer {token}'
         }
-        camera = self.client.get('/api/camera/' + '6217a8299bc2bb3b5f18a1fd/', **header)
+        camera = self.client.get('/api/area/' + '62176393052ab85305e21f8b/', **header)
 
         self.assertEqual(camera.status_code, status.HTTP_200_OK)
 

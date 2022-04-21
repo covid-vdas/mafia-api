@@ -9,7 +9,7 @@ from api.library.utils import splitHeader
 from bson import ObjectId
 from api.models.area_model import Area
 from api.models.role_model import Role
-
+from api.models.violation_model import Violation
 
 
 class CameraView(APIView):
@@ -189,3 +189,5 @@ def getAllCamera(request: Request, area_id):
         return Response(list_camera_serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'message': 'query page or limit record invalid'}, status=status.HTTP_400_BAD_REQUEST)
+
+
