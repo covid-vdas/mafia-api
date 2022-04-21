@@ -182,7 +182,7 @@ class UserDetailView(APIView):
             if request.data.get('password') is not None:
                 request.data['password'] = encryption(request.data['password']).decode('utf-8')
 
-            if request.data.get('managed_by') is not None and role_name_user_login == 'staff':
+            if bool(request.data.get('managed_by')) is False and role_name_user_login == 'staff':
                 return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
             serializers_user = UserSerializer(user, data=request.data, partial=True)  # serializer data for validation
@@ -197,16 +197,16 @@ class UserDetailView(APIView):
                     list_old_staff = User.objects(managed_by=str(user.id))
                     area_managed_by_manager = Area.objects(managed_manager=str(user.id)).first()
                     if area_managed_by_manager is not None:
-                        area_managed_by_manager.managed_manager = ''
+                        area_managed_by_manager.managed_manager = 'None'
                         area_managed_by_manager.save()
                     for old_staff in list_old_staff:
-                        old_staff.managed_by = ''
+                        old_staff.managed_by = 'None'
                         old_staff.save()
                 elif role_name_user == 'staff' and role_change == 'manager':
-                    user.managed_by = ''
+                    user.managed_by = 'None'
                     area_managed_by_staff = Area.objects(managed_staff=str(user.id)).first()
                     if area_managed_by_staff is not None:
-                        area_managed_by_staff.managed_staff = ''
+                        area_managed_by_staff.managed_staff = 'None'
                         area_managed_by_staff.save()
             print(11)
             if serializers_user.is_valid():

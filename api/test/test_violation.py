@@ -19,7 +19,7 @@ class TestCamera(APITestCase):
         # connectDB()
 
     # Case 1: Get all camera
-    def test_get_all_area(self):
+    def test_get_all_camera(self):
         counter = 0
 
         res = self.client.post('/api/login/', {'username': 'vdas-admin', 'password': '123456@Bc'}, format="json")
@@ -28,26 +28,7 @@ class TestCamera(APITestCase):
         header = {
             'HTTP_AUTHORIZATION': f'Bearer {token}'
         }
-        users = self.client.get('/api/area/', **header)
-
-        self.assertEqual(users.status_code, status.HTTP_200_OK)
-
-        counter += 1
-
-        print('Pass {} on {}'.format(counter, 1))
-
-    # Case 2: Get all camera pagination
-
-    def test_get_all_area(self):
-        counter = 0
-
-        res = self.client.post('/api/login/', {'username': 'vdas-admin', 'password': '123456@Bc'}, format="json")
-
-        token = res.data['token']
-        header = {
-            'HTTP_AUTHORIZATION': f'Bearer {token}'
-        }
-        users = self.client.get('/api/area/?page=2&limit=10', **header)
+        users = self.client.get('/api/camera/', **header)
 
         self.assertEqual(users.status_code, status.HTTP_200_OK)
 
@@ -56,7 +37,7 @@ class TestCamera(APITestCase):
         print('Pass {} on {}'.format(counter, 1))
 
     # Case 2: Get camera by id
-    def test_get_area_by_id(self):
+    def test_get_camera_by_id(self):
         counter = 0
 
         res = self.client.post('/api/login/', {'username': 'vdas-admin', 'password': '123456@Bc'}, format="json")
@@ -65,7 +46,7 @@ class TestCamera(APITestCase):
         header = {
             'HTTP_AUTHORIZATION': f'Bearer {token}'
         }
-        camera = self.client.get('/api/area/' + '62176393052ab85305e21f8b/', **header)
+        camera = self.client.get('/api/camera/' + '6217a8299bc2bb3b5f18a1fd/', **header)
 
         self.assertEqual(camera.status_code, status.HTTP_200_OK)
 
@@ -74,7 +55,7 @@ class TestCamera(APITestCase):
         print('Pass {} on {}'.format(counter, 1))
 
     # Case 3:Add new camera
-    def test_add_new_area(self):
+    def test_add_new_camera(self):
         counter = 0
         list_camera = [
             {
@@ -110,7 +91,7 @@ class TestCamera(APITestCase):
         print('Pass {} on {}'.format(counter, len(list_camera)))
 
     # Case 4: Test edit camera by id
-    def test_edit_area(self):
+    def test_edit_camera(self):
         counter = 0
         list_camera = [
             {
@@ -141,7 +122,7 @@ class TestCamera(APITestCase):
         print('Pass {} on {}'.format(counter, len(list_camera)))
 
     # Case 5: Delete camera by id
-    def test_delete_by_area_id(self):
+    def test_delete_by_camera_id(self):
         counter = 0
         res = self.client.post('/api/login/', {'username': 'vdas-admin', 'password': '123456@Bc'}, format="json")
 
@@ -153,5 +134,34 @@ class TestCamera(APITestCase):
 
         self.assertEqual(users.status_code, status.HTTP_200_OK)
 
+    # Case 6: Test get all camera by id of area
+    def test_get_all_camera_by_id_area(self):
+        counter = 0
+        list_area = [
+            {
+                'id': '62176393052ab85305e21f8b',
 
+            },
+            {
+                'id': '6217639a052ab85305e21f8c',
+            },
+            {
+                'id': '621763a5052ab85305e21f8d'
+            },
+
+        ]
+        for area in list_area:
+            print(area)
+            counter += 1
+            res = self.client.post('/api/login/', {'username': 'vdas-admin', 'password': '123456@Bc'}, format="json")
+
+            token = res.data['token']
+            header = {
+                'HTTP_AUTHORIZATION': f'Bearer {token}'
+            }
+            users = self.client.get('/api/camera/getAllCamera/' + area['id'] + '/', **header)
+
+            self.assertEqual(users.status_code, status.HTTP_200_OK)
+
+        print('Pass {} on {}'.format(counter, len(list_area)))
 

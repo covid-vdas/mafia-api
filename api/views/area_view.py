@@ -113,7 +113,7 @@ class AreaDetailView(APIView):
         try:
             user_role_login = Role.objects(id=user.role_id).first()
             if user_role_login.name == 'admin' or user_role_login == 'manager':
-                area = Area.objects(id=ObjectId(id)).first()
+                area = Area.objects.get(id=ObjectId(id))
                 area_serializer = AreaSerializer(area, data=request.data, partial=True)
 
                 if area_serializer.is_valid():
