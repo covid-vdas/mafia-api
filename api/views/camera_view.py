@@ -16,6 +16,7 @@ class CameraView(APIView):
     renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request: Request):
+        # get all camera
         if request.headers.get('Authorization') is None:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
         elif request.headers.get('Authorization').find('Bearer') == -1:
@@ -26,7 +27,7 @@ class CameraView(APIView):
 
         try:
             user_role_login = Role.objects(id=user.role_id).first()
-
+            # only admin access all camera
             if user_role_login.name == 'admin':
                 cameras = Camera.objects
                 camera_serializer = CameraSerializer(cameras, many=True)
@@ -50,6 +51,7 @@ class CameraView(APIView):
             if user_role_login.name == 'staff':
                 return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
+            # create new camera
             camera_serializer = CameraSerializer(data=request.data)
             if camera_serializer.is_valid():
                 camera_serializer.save()
@@ -76,6 +78,7 @@ class CameraDetailView(APIView):
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
+            # get camera by id
             camera = Camera.objects(id=id).first()
             if camera is not None:
                 camera_serializer = CameraSerializer(camera)
@@ -99,6 +102,7 @@ class CameraDetailView(APIView):
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
+            # update specific information of camera
             user_role_login = Role.objects(id=user.role_id).first()
             if user_role_login.name == 'staff':
                 return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -114,6 +118,7 @@ class CameraDetailView(APIView):
         return Response(camera_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request: Request, id):
+        # delete camera by id
         if request.headers.get('Authorization') is None:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
         elif request.headers.get('Authorization').find('Bearer') == -1:
@@ -160,6 +165,7 @@ def getAllCamera(request: Request, area_id):
         limit_record = 0
         page_number = 1
 
+        # get all camera by limit and page offset
         if bool(request.query_params.get('limit')) is True:
             limit_record = request.query_params.get('limit')
             if not limit_record.isdigit():
@@ -184,6 +190,7 @@ def getAllCamera(request: Request, area_id):
             if area.managed_staff != str(user.id):
                 return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
+        # return list camera
         list_camera = Camera.objects(area_id=area_id).skip(offset).limit(int(limit_record))
         list_camera_serializer = CameraSerializer(list_camera, many=True)
         return Response(list_camera_serializer.data, status=status.HTTP_200_OK)

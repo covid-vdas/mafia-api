@@ -29,6 +29,7 @@ class ViolationView(APIView):
         if bool(user) is False:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
+        # get all violation
         violations = Violation.objects
         violation_serializer = ViolationSerializer(violations, many=True)
 
@@ -47,6 +48,7 @@ class ViolationView(APIView):
         if bool(user) is False:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
+        # create new violation
         violation_serializer = ViolationSerializer(data=request.data)
         if violation_serializer.is_valid():
             violation_serializer.save()
@@ -71,6 +73,7 @@ class ViolationDetailView(APIView):
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
+            # get detail information of violation by id
             violation = Violation.objects(id=id).first()
             camera_serializer = ViolationSerializer(violation)
             result_violation = dynamically_camera(OrderedDict(camera_serializer.data))
@@ -79,40 +82,6 @@ class ViolationDetailView(APIView):
             print(e)
 
         return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    # def patch(self, request: Request, id):
-    #
-    #     if request.headers.get('Authorization') is None:
-    #         return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-    #     elif request.headers.get('Authorization').find('Bearer') == -1:
-    #         return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-    #     elif not ObjectId.is_valid(id):
-    #         return Response({'message': 'Object ID is not valid'}, status=status.HTTP_400_BAD_REQUEST)
-    #
-    #     user = splitHeader(request.headers['Authorization'].split(' ')[1])
-    #     if bool(user) is False:
-    #         return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-    #
-    #     violation = Violation.objects(id=id).first()
-    #     violation_serializer = ViolationSerializer(violation, data=request.data, partial=True)
-    #     return Response(violation_serializer.data, status=status.HTTP_200_OK)
-
-    # def delete(self, request: Request, id):
-    #
-    #     if request.headers.get('Authorization') is None:
-    #         return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-    #     elif request.headers.get('Authorization').find('Bearer') == -1:
-    #         return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-    #     elif not ObjectId.is_valid(id):
-    #         return Response({'message': 'Object ID is not valid'}, status=status.HTTP_400_BAD_REQUEST)
-    #
-    #     user = splitHeader(request.headers['Authorization'].split(' ')[1])
-    #     if bool(user) is False:
-    #         return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
-    #
-    #     violation = Violation.objects(id=id).first()
-    #     violation.delete()
-    #     return Response({'message': 'deleted successfully.'}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -144,7 +113,9 @@ def getAllViolation(request: Request, camera_id):
             else:
                 return Response({'message': 'query page invalid'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # count all violation in camera
         total_count = Violation.objects(camera_id=camera_id).count()
+        # user aggregate to optimize query for performance
         list_violation_by_camera = Violation.objects(camera_id=camera_id).aggregate(
             [
                 {
@@ -203,6 +174,7 @@ def getAllViolation(request: Request, camera_id):
                 }
             ]
         )
+        # add data to array
         custom_violation_arr = []
         for violation in list_violation_by_camera:
             custom_violation = {
@@ -231,6 +203,7 @@ def getAllViolation(request: Request, camera_id):
             # dynamically_camera(violation)
         print(violation)
         # list_violation_by_camera_serializer = ViolationSerializer(list_violation_by_camera, many=True)
+        # return json
         return JsonResponse({
             'total': total_count,
             'data': list(custom_violation_arr)
@@ -358,6 +331,7 @@ def listViolationByCamera(request: Request, camera_id):
                 offset = (int(page_number) - 1) * int(limit_record)
             else:
                 return Response({'message': 'query page invalid'}, status=status.HTTP_400_BAD_REQUEST)
+            # get from date to now, default is last 7 days
         to_date = datetime.datetime.now()
         report_time = 7
         if request.query_params.get('from-date') is not None:
@@ -365,6 +339,7 @@ def listViolationByCamera(request: Request, camera_id):
         from_date = to_date - datetime.timedelta(
             days=report_time)  # datetime.datetime.strptime(from_date_str, '%Y-%m-%d').date()   #.timedelta(days=3)
 
+        # user aggregate to optimize query
         list_from_to_date = Violation.objects(camera_id=camera_id).filter(created_at__gte=from_date,
                                                                           created_at__lt=to_date).aggregate(
             [
@@ -411,6 +386,7 @@ def listViolationByCamera(request: Request, camera_id):
             })
             total_violation_all_days += violation['count']
 
+        # return data with total case report
         return Response({
             'total_violation': total_violation_all_days,
             'total_distance': total_distance,
