@@ -192,6 +192,7 @@ class UserDetailView(APIView):
             if request.data.get('role_id') is not None:
                 role_change = Role.objects(id=request.data.get('role_id')).first()['name']
 
+            # ìf user login is admin will allowed
             if role_name_user_login == 'admin':
                 if role_name_user == 'manager' and role_change == 'staff':
                     list_old_staff = User.objects(managed_by=str(user.id))
@@ -208,7 +209,7 @@ class UserDetailView(APIView):
                     if area_managed_by_staff is not None:
                         area_managed_by_staff.managed_staff = 'None'
                         area_managed_by_staff.save()
-            print(11)
+            # if request data is valid to serialize
             if serializers_user.is_valid():
                 user.updated_at = datetime.datetime.utcnow()  # update updated_at field
                 serializers_user.save()  # save new instance to db
@@ -255,6 +256,7 @@ class UserDetailView(APIView):
 
             role_admin = Role.objects(name='admin').first()
 
+            # if user is admin or user is manager manage staff
             if (role_user_login == 'admin' and role_user_delete != 'admin') or (
                     role_user_login == 'manager' and role_user_delete == 'staff') and user_login.username != user_delete.username:
                 if role_user_delete == 'manager':
@@ -265,7 +267,7 @@ class UserDetailView(APIView):
                         print(staff_user.managed_by)
                         staff_user.managed_by = str(user_admin.id)
                         staff_user.save()
-                        print('flag')
+
 
                 user_delete.delete()
                 print('da xoa')
@@ -287,10 +289,10 @@ class LoginView(APIView):
         try:
             json_data = json.loads(request.body)
             username, password = json_data['username'], json_data['password']
-
+            # login with bcrypt hashed password
             user = auth(username, password)
             role_name = Role.objects(id=user.role_id).first()['name']
-            token = generate_token(username, password, role_name)
+            token = generate_token(username, password, role_name) # if success will generate access token
         except Exception as e:
             print(e)
             return Response({'message': 'Authentication invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -316,6 +318,11 @@ class LoginView(APIView):
 
 @api_view(['GET'])
 def getAllManager(request: Request):
+    """
+        Get all staff by ,manager
+        @param  request: received data from user's request
+        @return Response: list user and status
+    """
     if request.headers.get('Authorization') is None:
         return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
     elif request.headers.get('Authorization').find('Bearer') == -1:
@@ -325,6 +332,7 @@ def getAllManager(request: Request):
     if bool(user) is False:
         return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
     try:
+        # return list staff managed by manager
         role_manager = Role.objects(name='manager').first()
         list_manager = User.objects.filter(role_id=role_manager.id)
         serializers_users = UserSerializer(list_manager, many=True)

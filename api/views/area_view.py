@@ -15,7 +15,11 @@ class AreaView(APIView):
     renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request):
-
+        """
+             Get all staff by manager
+             @param  request: received data from user's request
+             @return Response: list area and status
+         """
         # Authorization
         if request.headers.get('Authorization') is None:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -38,6 +42,11 @@ class AreaView(APIView):
         return Response(area_serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        """
+            Get all staff by manager
+            @param  request: received data from user's request
+            @return Response: list area and status
+        """
         if request.headers.get('Authorization') is None:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
         elif request.headers.get('Authorization').find('Bearer') == -1:
@@ -50,6 +59,7 @@ class AreaView(APIView):
         if role is None:
             return Response({'message': 'role not found'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # role admin or manager will allows to create new area
         if role.name == 'admin' or role.name == 'manager':
             area_serializer = AreaSerializer(data=request.data)
             if area_serializer.is_valid():
@@ -65,6 +75,11 @@ class AreaDetailView(APIView):
     renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request, id):
+        """
+            Get all area by id
+            @param  request: received area from user's request
+            @return Response: get specific area
+        """
         if request.headers.get('Authorization') is None:
             return Response({'message': 'Authorization invalid.'}, status=status.HTTP_401_UNAUTHORIZED)
         elif request.headers.get('Authorization').find('Bearer') == -1:
@@ -143,7 +158,8 @@ class AreaDetailView(APIView):
         try:
             user_role_login = Role.objects(id=user.role_id).first()
 
-            if user_role_login.name == 'admin':
+            # only admin deleted it
+            if user_role_login.name == 'admin' or user_role_login.name == 'manager':
                 area = Area.objects(id=id).first()
                 camera_in_area = Camera.objects(area_id=id)
                 for camera in camera_in_area:
@@ -173,22 +189,24 @@ def getAllArea(request: Request):
         offset = 0
         limit_record = 0
         page_number = 1
-
+        # check if contains query limit
         if bool(request.query_params.get('limit')) is True:
             limit_record = request.query_params.get('limit')
             if not limit_record.isdigit():
                 return Response({'message': 'limit record invalid'}, status=status.HTTP_400_BAD_REQUEST)
-
+        # check if contains query page
         if bool(request.query_params.get('page')) is True:
             page_number = request.query_params.get('page')
             if page_number.isdigit():
                 offset = (int(page_number) - 1) * int(limit_record)
             else:
                 return Response({'message': 'query page invalid'}, status=status.HTTP_400_BAD_REQUEST)
-        print(offset, limit_record)
 
+        print(offset, limit_record)
         user_role_login = Role.objects(id=user.role_id).first()
         print(user_role_login)
+
+        # get All area with skip and limit
         list_area = Area.objects.skip(offset).limit(int(limit_record))
         if user_role_login.name == 'manager':
             list_area = Area.objects(managed_manager=str(user.id)).skip(offset).limit(int(limit_record))
